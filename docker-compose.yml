@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  samba:
+    image: dperson/samba:latest
+    container_name: network_share
+    ports:
+      - "139:139"
+      - "445:445"
+    volumes:
+      - /home/user/shared_folder:/mount
+    command:
+      - -u
+      - "admin;${SAMBA_PASSWORD}"
+      - -s
+      - "LanShare;/mount;yes;no;no;admin;admin;admin"
+    restart: unless-stopped
+      
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    volumes:
+      - ./qbittorrent:/config
+      - /home/user/shared_folder/torrents:/downloads #optional
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    stop_grace_period: "10s" #optional
+    restart: unless-stopped
+ 
+  duckdns:
+    image: linuxserver/duckdns:latest
+    container_name: duckdns
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+      - SUBDOMAINS=${SUBDOMAIN}
+      - TOKEN=${DUCKDNS_TOKEN}
+    volumes:
+      - ./duckdns:/config
+    restart: unless-stopped
+  
+  amnezia-wg-easy:
+      image: ghcr.io/imbtqd/amnezia-wg-easy:latest
+      container_name: amnezia-wg-easy
+      privileged: true
+      cap_add:
+        - NET_ADMIN
+        - SYS_MODULE
+      environment:
+        - WG_HOST=${SUBDOMAIN}.duckdns.org
+        - PASSWORD=${VPN_ADMIN_PASSWORD}
+        - WG_PORT=51820
+        - PORT=51821
+        # Параметры маскировки (Scramble/Junk) против блокировок ТСПУ:
+        - JC=5
+        - JMIN=40
+        - JMAX=150
+        - S1=50
+        - S2=60
+      volumes:
+        - ./amneziawg:/etc/amnezia/amneziawg
+      ports:
+        - "51820:51820/udp"
+        - "51821:51821/tcp"
+      restart: unless-stopped
