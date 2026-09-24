@@ -60,7 +60,6 @@ services:
         - PASSWORD=${VPN_ADMIN_PASSWORD}
         - WG_PORT=51820
         - PORT=51821
-        # Параметры маскировки (Scramble/Junk) против блокировок ТСПУ:
         - JC=5
         - JMIN=40
         - JMAX=150
