@@ -8,7 +8,7 @@ services:
       - "139:139"
       - "445:445"
     volumes:
-      - /home/user/shared_folder:/mount
+      - /home/user/shared_folder:/mount 
     command:
       - -u
       - "admin;${SAMBA_PASSWORD}"
@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
       
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
+    image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
     environment:
       - PUID=1000
@@ -27,12 +27,12 @@ services:
       - TORRENTING_PORT=6881
     volumes:
       - ./qbittorrent:/config
-      - /home/user/shared_folder/torrents:/downloads #optional
+      - /home/user/shared_folder/torrents:/downloads
     ports:
       - 8080:8080
       - 6881:6881
       - 6881:6881/udp
-    stop_grace_period: "10s" #optional
+    stop_grace_period: "10s"
     restart: unless-stopped
  
   duckdns:
