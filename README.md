@@ -49,7 +49,7 @@ cd monitoring && docker compose down && cd ..
 
 **Полезные команды для отладки:**
 ```bash
-# Посмотреть логи контейнера, например AmnewziaWG Easy
+# Посмотреть логи контейнера, например AmneziaWG Easy
 sudo docker compose logs -f amneziawg-easy
 
 # Проверить потребление ресурсов контейнерами
@@ -62,7 +62,7 @@ sudo docker stats
 
 1. **Клонировать репозиторий:**
    ```bash
-   git clone https://github.com
+   git clone https://github.com/Leschock-Syu/homelab-docker
    cd homelab-docker
    ```
 2. **Настроить секреты:**
