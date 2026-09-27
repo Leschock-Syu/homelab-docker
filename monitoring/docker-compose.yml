@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # --- Хранилище и сборщик метрик ---
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d' # Хранить метрики 15 дней, тестовое значение для виртуалки
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prom_data:/prometheus
+
+  # --- Дашборды и визуализация ---
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_LOGIN}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD} # Смени пароль при первом входе!
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  # --- Метрики железа ОС ---
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro'
+    command:
+      - '--path.rootfs=/host'
+
+  # --- Метрики Docker-контейнеров ---
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8081:8080" # Смещен внешний порт (8081), чтобы не конфликтовать с qBittorrent (8080)
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+
+volumes:
+  prom_data:
+  grafana_data:
