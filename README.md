@@ -94,7 +94,7 @@ sudo docker stats
    ```
 2. **Настроить секреты:**
    ```bash
-   mv .env.example .env
+   cp .env.example .env
    nano .env
    ```
 3. **Запустить всё:**
