@@ -59,7 +59,7 @@ services:
       - /dev/disk/:/dev/disk:ro
     devices:
       - /dev/kmsg
-      
+  # --- Блок доступности контейнеров и отправка уведомлений ---      
   uptime-kuma:
     image: louislam/uptime-kuma:2
     container_name: uptime-kuma
