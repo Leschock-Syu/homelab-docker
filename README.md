@@ -42,6 +42,9 @@ sudo docker compose restart qbittorrent
 Лучше пользователя в группу docker добавить, чтобы не писать sudo лишний раз. 
 Флаг -E при запуске compose up обязательный, потому что иначе шара создастся по пути /root/torrents, нам такого не нужно
 
+```bash
+sudo usermod -aG docker $USER
+```
 
 **Управление мониторингом:**
 ```bash
