@@ -31,7 +31,7 @@
 **Управление основным стеком:**
 ```bash
 # Запустить (qBitTorrent, VPN, Samba, DuckDNS)
-sudo docker compose up -d
+sudo -E docker compose up -d 
 
 # Остановить весь стек
 sudo docker compose down
@@ -39,6 +39,9 @@ sudo docker compose down
 # Перезапустить один контейнер, например qBitTorrent (например, если завис)
 sudo docker compose restart qbittorrent
 ```
+Лучше пользователя в группу docker добавить, чтобы не писать sudo лишний раз. 
+Флаг -E при запуске compose up обязательный, потому что иначе шара создастся по пути /root/torrents, нам такого не нужно
+
 
 **Управление мониторингом:**
 ```bash
@@ -99,6 +102,6 @@ sudo docker stats
    ```
 3. **Запустить всё:**
    ```bash
-   sudo docker compose up -d
+   sudo -E  docker compose up -d
    cd monitoring && docker compose up -d && cd ..
    ```
