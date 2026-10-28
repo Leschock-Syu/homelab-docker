@@ -1,6 +1,41 @@
 version: '3.8'
 
+networks:
+  homelab_net:
+    external: true
+
 services:
+  nginx-proxy:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"       
+      - "443:443"    
+      - "81:81"       # Временный порт админки самого Nginx (потом его тоже спрячем)
+    volumes:
+      - ./nginx/data:/data
+      - ./nginx/letsencrypt:/etc/letsencrypt
+    networks:
+      - homelab_net
+
+ # локльный днс сервер, если у вас есть в роутере такая фича (то я завидую), то это можно закоментировать, хотя тут ведь еще блокировщик рекламы
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: adguardhome
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "3000:3000/tcp"   # временно открываем для админки, потом закроем после макстера настройки adguard
+      - "8085:8085/tcp"   # этот порт я выбрал при первой настройке в админке, тут индивдуально, выбираем какой свободен
+    volumes:
+      - ./adguard/work:/opt/adguardhome/work
+      - ./adguard/conf:/opt/adguardhome/conf
+    networks:
+      - homelab_net
+      
+      
   samba:
     image: dperson/samba:latest
     container_name: network_share
@@ -15,6 +50,8 @@ services:
       - -s
       - "LanShare;/mount;yes;no;no;admin;admin;admin"
     restart: unless-stopped
+    networks:
+      - homelab_net
       
   qbittorrent:
     image: linuxserver/qbittorrent:latest
@@ -29,11 +66,12 @@ services:
       - ./qbittorrent:/config
       - ${HOME}/shared_folder/torrents:/downloads
     ports:
-      - 8080:8080
       - 6881:6881
       - 6881:6881/udp
     stop_grace_period: "10s"
     restart: unless-stopped
+    networks:
+      - homelab_net
  
   duckdns:
     image: linuxserver/duckdns:latest
@@ -47,6 +85,8 @@ services:
     volumes:
       - ./duckdns:/config
     restart: unless-stopped
+    networks:
+      - homelab_net
   
   amnezia-wg-easy:
       image: ghcr.io/imbtqd/amnezia-wg-easy:latest
@@ -69,5 +109,6 @@ services:
         - ./amneziawg:/etc/amnezia/amneziawg
       ports:
         - "51820:51820/udp"
-        - "51821:51821/tcp"
       restart: unless-stopped
+      networks:
+        - homelab_net

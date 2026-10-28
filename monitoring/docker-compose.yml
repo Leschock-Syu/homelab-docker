@@ -1,12 +1,14 @@
 version: '3.8'
 
+networks:
+  homelab_net:
+    external: true
+
 services:
   # --- Хранилище и сборщик метрик ---
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
-    ports:
-      - "9090:9090"
     restart: unless-stopped
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -15,13 +17,13 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prom_data:/prometheus
+    networks:
+      - homelab_net
 
   # --- Дашборды и визуализация ---
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    ports:
-      - "3000:3000"
     restart: unless-stopped
     env_file:
       - ../.env
@@ -30,25 +32,26 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD} # Смени пароль при первом входе!
     volumes:
       - grafana_data:/var/lib/grafana
+    networks:
+      - homelab_net  
 
   # --- Метрики железа ОС ---
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
-    network_mode: host
     pid: host
     restart: unless-stopped
     volumes:
       - '/:/host:ro'
     command:
       - '--path.rootfs=/host'
+    networks:
+      - homelab_net  
 
   # --- Метрики Docker-контейнеров ---
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
-    ports:
-      - "8081:8080" # Смещен внешний порт (8081), чтобы не конфликтовать с qBittorrent (8080)
     restart: unless-stopped
     privileged: true
     volumes:
@@ -59,15 +62,17 @@ services:
       - /dev/disk/:/dev/disk:ro
     devices:
       - /dev/kmsg
+    networks:
+      - homelab_net 
   # --- Блок доступности контейнеров и отправка уведомлений ---      
   uptime-kuma:
     image: louislam/uptime-kuma:2
     container_name: uptime-kuma
     restart: unless-stopped
-    ports:
-      - "3001:3001"
     volumes:
       - kuma_data:/app/data
+    networks:
+      - homelab_net
         
 volumes:
   prom_data:
